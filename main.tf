@@ -6,8 +6,8 @@ resource "random_id" "id" {
 }
 
 data "archive_file" "lambda_zip" {
-	type = "zip"
-	output_path = "/tmp/${random_id.id.hex}-lambda.zip"
+  type        = "zip"
+  output_path = "/tmp/${random_id.id.hex}-lambda.zip"
   source {
     content  = <<EOF
 exports.handler = async (event, context) => {
@@ -24,36 +24,36 @@ EOF
 }
 
 resource "aws_lambda_function" "lambda" {
-	function_name = "${random_id.id.hex}-function"
+  function_name = "${random_id.id.hex}-function"
 
-  filename = data.archive_file.lambda_zip.output_path
+  filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   handler = "backend.handler"
   runtime = "nodejs12.x"
-  role = aws_iam_role.lambda_exec.arn
+  role    = aws_iam_role.lambda_exec.arn
 }
 
 resource "aws_lambda_function" "lambda_without_createloggroup" {
-	function_name = "without-createloggroup-${random_id.id.hex}-function"
+  function_name = "without-createloggroup-${random_id.id.hex}-function"
 
-  filename = data.archive_file.lambda_zip.output_path
+  filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   handler = "backend.handler"
   runtime = "nodejs12.x"
-  role = aws_iam_role.lambda_exec_without_createloggroup.arn
+  role    = aws_iam_role.lambda_exec_without_createloggroup.arn
 }
 
 resource "aws_lambda_function" "lambda_without_createloggroup_with_resource" {
-	function_name = "without-createloggroup-with-resource-${random_id.id.hex}-function"
+  function_name = "without-createloggroup-with-resource-${random_id.id.hex}-function"
 
-  filename = data.archive_file.lambda_zip.output_path
+  filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   handler = "backend.handler"
   runtime = "nodejs12.x"
-  role = aws_iam_role.lambda_exec_without_createloggroup.arn
+  role    = aws_iam_role.lambda_exec_without_createloggroup.arn
 }
 
 resource "aws_cloudwatch_log_group" "loggroup" {
@@ -63,21 +63,21 @@ resource "aws_cloudwatch_log_group" "loggroup" {
 
 # role
 data "aws_iam_policy_document" "lambda_exec_role_policy" {
-	statement {
-		actions = [
-			"logs:CreateLogGroup",
-			"logs:CreateLogStream",
-			"logs:PutLogEvents"
-		]
-		resources = [
-			"arn:aws:logs:*:*:*"
-		]
-	}
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "arn:aws:logs:*:*:*"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role" {
-	role = aws_iam_role.lambda_exec.id
-	policy = data.aws_iam_policy_document.lambda_exec_role_policy.json
+  role   = aws_iam_role.lambda_exec.id
+  policy = data.aws_iam_policy_document.lambda_exec_role_policy.json
 }
 
 resource "aws_iam_role" "lambda_exec" {
@@ -99,20 +99,20 @@ EOF
 
 # role without logs:CreateLogGroup permission
 data "aws_iam_policy_document" "lambda_exec_role_policy_without_createloggroup" {
-	statement {
-		actions = [
-			"logs:CreateLogStream",
-			"logs:PutLogEvents"
-		]
-		resources = [
-			"arn:aws:logs:*:*:*"
-		]
-	}
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "arn:aws:logs:*:*:*"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role_without_createloggroup" {
-	role = aws_iam_role.lambda_exec_without_createloggroup.id
-	policy = data.aws_iam_policy_document.lambda_exec_role_policy_without_createloggroup.json
+  role   = aws_iam_role.lambda_exec_without_createloggroup.id
+  policy = data.aws_iam_policy_document.lambda_exec_role_policy_without_createloggroup.json
 }
 
 resource "aws_iam_role" "lambda_exec_without_createloggroup" {
@@ -133,13 +133,13 @@ EOF
 }
 
 output "function_name" {
-	value = aws_lambda_function.lambda.function_name
+  value = aws_lambda_function.lambda.function_name
 }
 
 output "function_name_without_createloggroup" {
-	value = aws_lambda_function.lambda_without_createloggroup.function_name
+  value = aws_lambda_function.lambda_without_createloggroup.function_name
 }
 
 output "function_name_without_createloggroup_with_resource" {
-	value = aws_lambda_function.lambda_without_createloggroup_with_resource.function_name
+  value = aws_lambda_function.lambda_without_createloggroup_with_resource.function_name
 }
